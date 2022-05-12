@@ -1,0 +1,5 @@
+export { Creature } from './creature'
+export { GeneSequence } from './geneSequence'
+export type { Gene, GeneType } from './gene'
+export { GeneAction, GeneProcess, GeneSensor } from './gene'
+export { World } from './world'

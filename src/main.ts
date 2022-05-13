@@ -1,4 +1,7 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { setup } from './world/simulation'
+// import { createApp } from 'vue'
+// import App from './App.vue'
 
-createApp(App).mount('#app')
+// createApp(App).mount('#app')
+
+setup()

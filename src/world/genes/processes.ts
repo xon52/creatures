@@ -1,6 +1,6 @@
-import { Creature, World } from '../../classes'
+import { Creature } from '../../classes'
 import { gene, geneSignal } from '../../types'
 
-const genes: gene[] = [{ name: 'Invert', run: (c: Creature, w: World, i: geneSignal) => !i }]
+const genes: gene[] = [{ name: 'Invert', run: (c: Creature, i: geneSignal) => !i }]
 
 export default genes

@@ -1,8 +1,8 @@
-import { Creature, World } from '../classes'
+import { Creature } from '../classes'
 
-export type geneSignal = boolean | number
+export type geneSignal = boolean | number | undefined
 
 export type gene = {
   name: string
-  run: (creature: Creature, world: World, input: geneSignal) => geneSignal
+  run: (creature: Creature, input: geneSignal) => geneSignal
 }

@@ -1,4 +1,4 @@
-import { Creature, World } from '../../classes'
+import { Creature } from '../../classes'
 import { gene } from '../../types'
 
 // Helpers
@@ -13,10 +13,11 @@ const getNearbyTiles = (x: number, y: number) => [
   { x: x - 1, y: y + 1 },
 ]
 
-const getNeighbours = (w: World, x: number, y: number) => {
+const getNeighbours = (c: Creature) => {
   const neighbours: Creature[] = []
-  getNearbyTiles(x, y).forEach((t) => {
-    const occupant = w.getTileOccupant(t.x, t.y)
+  getNearbyTiles(c.x, c.y).forEach((t) => {
+    if (!c.world.isValidTile(t.x, t.y)) return
+    const occupant = c.world.getTileOccupant(t.x, t.y)
     if (occupant instanceof Creature) neighbours.push(occupant)
   })
   return neighbours
@@ -25,34 +26,34 @@ const getNeighbours = (w: World, x: number, y: number) => {
 const genes: gene[] = [
   {
     name: 'Is facing edge',
-    run: (c: Creature, w: World) => {
-      const { x, y } = c.getForward()
-      return !w.isValidTile(x, y)
+    run: (c: Creature) => {
+      const { x, y } = c.getCoordFromDirection('Forward')
+      return !c.world.isValidTile(x, y)
     },
   },
   {
     name: 'Is not facing edge',
-    run: (c: Creature, w: World) => {
-      const { x, y } = c.getForward()
-      return w.isValidTile(x, y)
+    run: (c: Creature) => {
+      const { x, y } = c.getCoordFromDirection('Forward')
+      return c.world.isValidTile(x, y)
     },
   },
   {
     name: 'Is facing creature',
-    run: (c: Creature, w: World) => {
-      const { x, y } = c.getForward()
-      return w.getTileOccupant(x, y) instanceof Creature
+    run: (c: Creature) => {
+      const { x, y } = c.getCoordFromDirection('Forward')
+      return c.world.isValidTile(x, y) && c.world.getTileOccupant(x, y) instanceof Creature
     },
   },
   {
     name: 'Is not facing creature',
-    run: (c: Creature, w: World) => {
-      const { x, y } = c.getForward()
-      return !(w.getTileOccupant(x, y) instanceof Creature)
+    run: (c: Creature) => {
+      const { x, y } = c.getCoordFromDirection('Forward')
+      return c.world.isValidTile(x, y) && !(c.world.getTileOccupant(x, y) instanceof Creature)
     },
   },
-  { name: 'Is crowded', run: (c: Creature, w: World) => getNeighbours(w, c.x, c.y).length > 4 },
-  { name: 'Is not crowded', run: (c: Creature, w: World) => getNeighbours(w, c.x, c.y).length < 3 },
+  { name: 'Is crowded', run: (c: Creature) => getNeighbours(c).length > 4 },
+  { name: 'Is not crowded', run: (c: Creature) => getNeighbours(c).length < 3 },
 ]
 
 export default genes

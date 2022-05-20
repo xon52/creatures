@@ -1,13 +1,17 @@
-import { gene } from '../types'
+import {
+  getCardinalCoords,
+  getCardinalDirection,
+  getColorFromBinary,
+  getRandomDirection,
+  getRelativeCoords,
+  isCardinalDirection,
+  isRelativeDirection,
+} from '../helpers'
+import { gene, geneSignal } from '../types'
 import { GeneLibrary } from './geneLibrary'
 import { World } from './world'
 
-export enum direction {
-  North,
-  East,
-  South,
-  West,
-}
+// Direction: 0 North, 1 East, 2 South, 3, West
 
 export class Creature {
   constructor(x: number, y: number, genome: string, world: World, library: GeneLibrary) {
@@ -16,43 +20,57 @@ export class Creature {
     this.world = world
     this.genome = genome
     this.genes = library.extract(genome)
+    this.color = getColorFromBinary(genome)
   }
 
-  private world: World
+  public world: World
   public x: number
   public y: number
+  public color: string
 
-  public direction: direction = Math.floor(Math.random() * 4)
+  public direction: string = getRandomDirection()
   public genome: string
   public genes: gene[] = []
 
-  public getForward = () => {
-    if (this.direction === direction.North) return { x: this.x, y: this.y + 1 }
-    if (this.direction === direction.East) return { x: this.x + 1, y: this.y }
-    if (this.direction === direction.South) return { x: this.x, y: this.y - 1 }
-    if (this.direction === direction.West) return { x: this.x - 1, y: this.y }
-    throw new Error(`Unknown direction "${this.direction}" in getForward,`)
+  public setPosition = (pos: { x: number; y: number }) => {
+    this.x = pos.x
+    this.y = pos.y
   }
-  public moveForward = () => {
-    const { x, y } = this.getForward()
-    if (this.world.isValidTile(x, y)) return false
-    if (this.world.isTileVacant(x, y)) return false
+
+  public getCoordFromDirection = (direction: string) => {
+    if (isCardinalDirection(direction)) return getCardinalCoords(this.x, this.y, direction)
+    else if (isRelativeDirection(direction)) return getRelativeCoords(this.x, this.y, this.direction, direction)
+    else throw new Error(`Invalid move direction "${direction}"`)
+  }
+
+  public move = (direction: string) => {
+    const { x, y } = this.getCoordFromDirection(direction)
+    if (!this.world.isValidTile(x, y)) {
+      return false
+    }
+    if (!this.world.isTileVacant(x, y)) {
+      return false
+    }
     this.world.removeOccupant(this.x, this.y)
     this.world.addOccupant(this, x, y)
-    this.x = x
-    this.y = y
-    return true
-  }
-  public turnLeft = () => {
-    this.direction = this.direction === 0 ? 3 : this.direction - 1
-    return true
-  }
-  public turnRight = () => {
-    this.direction = this.direction === 3 ? 0 : this.direction + 1
+    this.setPosition({ x, y })
     return true
   }
 
-  // reproduce() {
-  //   return new Creature({ x: this.x, y: this.y })
-  // }
+  public turnLeft = () => {
+    this.direction = getCardinalDirection(this.direction, 'Left')
+    return true
+  }
+  public turnRight = () => {
+    this.direction = getCardinalDirection(this.direction, 'Right')
+    return true
+  }
+
+  public run = () => {
+    let prevSignal: geneSignal = undefined
+    this.genes.forEach((g) => {
+      if (g === undefined) return (prevSignal = undefined)
+      prevSignal = g.run(this, prevSignal)
+    })
+  }
 }
